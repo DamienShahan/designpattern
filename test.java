@@ -1,18 +1,20 @@
 package Client;
+
 import java.rmi.RemoteException;
 import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
 import java.rmi.server.RemoteServer;
+
 import java.util.*;
+
 import AbstractFactory;
+
 import share.CompanyManagerInterface;
 import share.DepartmentInterface;
 import share.EmployeeInterface;
 /**
 *  @author Damien
 **/
-// Aus kommentiert, da die AbstractFactory von Hans noch nicht aufgerufen werden kann. 
-// Man kann nicht commiten wenn ein Fehler vorhanden ist.
 
 public class CompanyFassade {
     
