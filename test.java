@@ -18,45 +18,41 @@ import share.EmployeeInterface;
 
 public class CompanyFassade {
     
-    Registry registry;
-    CompanyManagerInterface companyManagerInterface;
-    private static AbstractFactory af = null;
+    //Registry registry;
+    //CompanyManagerInterface companyManagerInterface;
+    
+    //satisches Objekt der CompanyFassade
+    private static CompanyFacade companyFassade = null;
+    
+   	//Online- und Offline-Factory zur Verfuegung stellen, damit bei Serverausfall zur Laufzeit ungeschaltet werden kann
+	private AbstractFactory onlineFact;
+	private AbstractFactory offlineFact;
+    
+    //Observable-Lists fÃ¼r alle IEmps- und IDept-Objekte
+	private ObservableList<DepartmentInterface> depts = FXCollections.observableArrayList();
+	private ObservableList<EmployeeInterface> emps = FXCollections.observableArrayList();
+
     // Konstruktor
-    private CompanyFassade(){
+    private CompanyFassade() throws AccessException, RemoteException, NotBoundException
+    {
+        //TODO Factory's anpassen
+        this.onlineFact = new FactoryOnline();
+		this.offlineFact = new FactoryOffline();
         // Teste ob eine Verbindung zum Server aufgebaut werden kann
         // Der Code ist fehleranfällig, da entweder eine Verbindung aufgebaut werden kann oder nicht (Fehler).
-        try {
-            // Versuche Verbindung zu Server aufzubauen
-            // Registry vom Server abrufen
-            this.registry = LocateRegistry.getRegistry("localhost", 1099);
-            
-            // Prüfen ob CompanyManager im Registry eingetragen ist
-            this.companyManagerInterface = (CompanyManagerInterface) this.registry.lookup("CompanyManager");
-            
-            // Führe online Methode aus Version 1
-            //online();
-            
-            // Führe online Methode aus Version 2
-            af = FactoryMaker.getFactory("online");
-            
-            // Inhalt
-            this.companyManagerInterface.getEmployee(empNo);
-            this.companyManagerInterface.addEmployee(empNo, empFirstName, empLastName, empBirthday, empBirthplace:String, empDescription, empSalary);
-            this.companyManagerInterface.getAllEmployees();
-            this.companyManagerInterface.getDepartment(deptNo);
-            this.companyManagerInterface.addDepartment(deptNo, deptName, deptDescription, deptLocation, deptStreet, deptPostalcode);
-            this.companyManagerInterface.getAllDepartments();
-            this.companyManagerInterface.linkEmployeesDepartments(employeeInterface, departmentInterface);
+        try 
+        {
+            emps.addAll(onlineFact.getAllEmps()); 
+            depts.addAll(onlineFact.getAllDepts());
+			System.out.println("Online-Modus: Elemente aus DB lesen");
         } 
         // Falls keine Verbindung aufgebaut werden kann, wird folgendes Code ausgeführt
-        catch (NotBoundException e) {
-            //e.printStackTrace();
-            
-            // Führe online Methode aus Version 1
-            //offline();
-            
-            // Führe online Methode aus Version 2
-            af = FactoryMaker.getFactory("offline");
+        catch (RemoteException e)
+        {
+             System.out.println("Exeption offline getAllDepts");
+			depts.addAll(offlineFact.getAllDepts());
+			emps.addAll(offlineFact.getAllEmps());
+			System.out.println("Offline-Modus: Dummy-Elemente einlesen, da kein DB-Zugriff");
         }
     }
     
@@ -70,37 +66,24 @@ public class CompanyFassade {
             return companyFassade;
         }
     }
-    // AbstractFactory-Objekte Version 1
-    //public void online() {
-    //    af = AbstractFactory.getFactory(AbstractFactory.FactoryOn);
-    //}
-    //public void offline() {
-    //    af = AbstractFactory.getFactory(AbstractFactory.FactoryOff);
-    //    Employee emp = af.createEmp();
-    //    Department dept = af.createDept();       
-    //} 
+ //view->controller->fassade-> factory->companyinterface
+//------------------------  Methoden für den Controller-Zugriff 
     
+    //gibt gesamte IDept-Liste zurueck
+	public ObservableList<IDept> getDepts()
+	{
+		return depts;
+	}
+	
+    public IDept getDept(int deptno) {}
     
-    // AbstractFactory-Objekte Version 2
-    class FactoryMaker{
-        static AbstractFactory getFactory(String choice){
-            if(choice.equals("online")){
-                af = new FactoryOn();
-            }
-            else if(choice.equals("offline")){
-                af = new FactoryOff();
-            } 
-            return af;
-        }
+    public void addDept(String name, String beschreibung,String anschrift, String postleitzahl, String standort) {
+    // try/Catch idept =onlineFact.createDept(deptnumber, name, beschreibung, anschrift, postleitzahl, standort)
+        depts.add(idept);
     }
+    //same Emp
     
-    //  Von Mandy
-    //- zwei AbstracteFactory-Objekte implementiert, einer für online einer für 
-    //  offline ( nur das Gerüst, noch keine Instanziierung) 
-    //- innerhalb des Konstruktors erfolgt die Instanziierung der AbstractFactory- 
-    //  Objekte und es wird überprüft, ob eine Verbindung zum Server 
-    //  möglich ist (Abfrage aller Emps und Depts über die online-Factory), ist keine 
-    //  Verbindung möglich wird die Offline-Factory verwendet. 
-    //- Zudem wird hier die Kommunikation mit den Controllern implementiert (z.B. 
-    //  addEmp(), getEmp(), getAllEmps(), linkEmpDep()) 
+    public void linkEmpDept(IEmp iemp, IDept idept){
+    //try/Catch onlineFact.linkEmpDept(idept, iemp);
+    }
 }
